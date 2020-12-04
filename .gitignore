@@ -1,0 +1,11 @@
+# terraform State
+*.tfstate
+*.tfstate.backup
+*.tfvars
+.terraform
+.vagrant
+.DS_Store
+ansible-turing-pi/ansible.log
+ansible-turing-pi/files
+*.pub
+ubuntu-*
