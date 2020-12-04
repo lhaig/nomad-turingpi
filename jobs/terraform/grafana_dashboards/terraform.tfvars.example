@@ -1,0 +1,2 @@
+grafana_address = "http://nmd-clnt2.fritz.box:3000"
+prometheus_address = "http://nmd-clnt2.fritz.box:9090"

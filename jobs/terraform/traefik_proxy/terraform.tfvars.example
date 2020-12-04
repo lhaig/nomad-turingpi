@@ -1,0 +1,2 @@
+# Use this example tfvars file to add your nomad server.
+nomad_addr = "ADD YOUR SERVER ADDRESS HERE"
