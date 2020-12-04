@@ -1,0 +1,14 @@
+# Full configuration options can be found at https://www.consul.io/docs/agent/options.html
+
+#==> Server
+server                        = true
+bootstrap_expect              = {{bootstrap_expect}}
+node_name                     = "{{inventory_hostname_short}}"
+retry_join                    = {{retry_join}}
+
+bind_addr                     = "0.0.0.0"
+client_addr                   = "0.0.0.0"
+ui                            = true
+enable_central_service_config = true
+
+recursors                     = ["169.254.169.253","1.1.1.1","1.0.0.1","8.8.8.8"]

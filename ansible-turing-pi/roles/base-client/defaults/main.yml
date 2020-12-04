@@ -1,0 +1,14 @@
+---
+base_apps_list:
+  - curl
+  - wget
+  - jq
+  - tree
+  - unzip
+  - postgresql-client
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - software-properties-common
+  - docker-ce
+docker_user: ubuntu

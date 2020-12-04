@@ -1,0 +1,4 @@
+---
+nomad_user: "nomad"
+nomad_group: "nomad"
+nomad_config_path: "/etc/nomad.d/"

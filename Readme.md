@@ -36,3 +36,17 @@ cd vagrant
 vagrant up
 ```
 
+Install and configure your TuringPi cluster with Ubuntu 18.04
+I added the node addresses to my local DNS environment.
+
+## Deploy Nomad and Consul to the Servers and Clients
+
+Open the hosts.ini file in your editor and make changes to the file with the details of your Vagrant and TuringPi servers and Hosts.
+
+Once updated make sure you can SSH into each of the servers without using usernames and passwords.
+Then run the playbook below to install Nomad and Consul on your servers.
+
+```bash
+cd ansible-turing-pi
+ansible-playbook -i hosts.ini turingpi.yml
+```

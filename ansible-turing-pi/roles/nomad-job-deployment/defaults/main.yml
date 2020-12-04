@@ -1,0 +1,3 @@
+---
+nomad_user: "nomad"
+nomad_group: "nomad"

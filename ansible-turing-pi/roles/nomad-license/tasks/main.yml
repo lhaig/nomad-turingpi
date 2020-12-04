@@ -1,0 +1,21 @@
+# Tasks to license Nomad
+- name: Read license content
+  command: cat ./files/nomad.hclic
+  register: nomad_license
+  delegate_to: localhost
+  # become: no
+  tags:
+    - nomad-server
+
+- name: License nomad
+  shell: |
+    echo {{ lookup('file', 'nomad.hclic')}} | nomad license put -
+    echo {{ lookup('file', 'nomad.hclic')}} > deleteme.txt
+  run_once: true
+  environment:
+    # VAULT_TOKEN: "{{ lookup('file', '/tmp/rootKey/rootkey')}}"
+    # VAULT_ADDR: "http://127.0.0.1:8200"
+  tags:
+    - nomad-job-deployment
+
+

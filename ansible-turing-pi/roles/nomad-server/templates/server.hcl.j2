@@ -1,0 +1,16 @@
+# Full configuration options can be found at https://www.nomadproject.io/docs/configuration
+# https://learn.hashicorp.com/tutorials/nomad/production-deployment-guide-vm-with-consul
+
+
+server {
+  enabled          = true
+  bootstrap_expect = {{bootstrap_expect}}
+#  encrypt          = "{{nomad_gossip_key}}"
+
+  job_gc_threshold = "2m"
+  server_join {
+    retry_join       = {{retry_join}}
+    retry_max = 3
+    retry_interval = "15s"
+  }
+}

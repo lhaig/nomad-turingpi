@@ -1,0 +1,89 @@
+# Deploy Consul Server
+- name: IpTables TCP
+  become: yes
+  command: iptables -t nat -A OUTPUT -d localhost -p tcp -m tcp --dport 53 -j REDIRECT --to-ports 8600
+  tags:
+    - consul-servers
+
+- name: IpTables UDP
+  become: yes
+  command: iptables -t nat -A OUTPUT -d localhost -p udp -m udp --dport 53 -j REDIRECT --to-ports 8600
+  tags:
+    - consul-servers
+
+- name: Consul - Create consul user
+  become: yes
+  user:
+    name: "{{ item }}"
+    system: yes
+    shell: "/sbin/nologin"
+    comment: "nologin user"
+    create_home: "no"
+    state: present
+  loop:
+    - "{{ consul_user }}"
+  tags:
+    - consul-servers
+
+- name: Create /etc/consul.d if it does not exist
+  become: yes
+  file:
+    path: /etc/consul.d
+    state: directory
+    mode: '0755'
+
+- name: Consul - Create HashiCorp directories
+  become: yes
+  file:
+    path: /opt/{{ item }}
+    state: directory
+    mode: 0777
+    owner: "{{ item }}"
+    group: "{{ item }}"
+  loop:
+    - consul
+  tags:
+    - consul-servers
+
+- name: Consul - Unzip and install HashiCorp Consul
+  become: yes
+  unarchive:
+    remote_src: yes
+    src: https://releases.hashicorp.com/consul/{{consul_ver}}+ent/consul_{{consul_ver}}+ent_linux_{{arch}}.zip
+    dest: /usr/bin/
+  tags:
+    - consul-servers
+
+- name: Consul - Create service file
+  become: yes
+    # Ubuntu: service files are placesd here /lib/systemd/system/
+    # Ubuntu: symlinked to here when enabled /etc/systemd/system/multi-user.target.wants/
+  template:
+    src: init.service.j2
+    dest: /lib/systemd/system/consul.service
+  notify: systemd_reload
+  tags:
+    - consul=servers
+
+- name: Consul - Create config files
+  become: yes
+  template:
+    src: "{{ item }}.hcl.j2"
+    dest: "{{ consul_config_path }}/{{ item }}.hcl"
+    owner: "{{ consul_user }}"
+    group: "{{ consul_group }}"
+  loop:
+    - common
+    - server
+  tags:
+    - consul-servers
+
+- name: Consul - Enable and start consul service
+  become: yes
+  service:
+    name: consul
+    state: started
+    enabled: yes
+  tags:
+    - consul-servers
+

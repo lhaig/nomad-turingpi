@@ -1,0 +1,29 @@
+# Full configuration options can be found at https://www.nomadproject.io/docs/configuration
+# https://learn.hashicorp.com/tutorials/nomad/production-deployment-guide-vm-with-consul
+
+name             = "{{inventory_hostname_short}}"
+region           = "{{region}}"
+datacenter       = "{{datacenter}}"
+data_dir         = "/opt/nomad/"
+bind_addr        = "0.0.0.0" # Default is 0.0.0.0
+enable_debug     = true
+
+advertise {
+  #--> Defaults to the first private IP address.
+  http = "{{ansible_host}}:4646"
+  rpc  = "{{ansible_host}}:4647"
+  serf = "{{ansible_host}}:4648"
+}
+
+telemetry {
+  collection_interval        = "1s"
+  disable_hostname           = true
+  prometheus_metrics         = true
+  publish_allocation_metrics = true
+  publish_node_metrics       = true
+}
+
+# Enable Auditing
+audit {
+  enabled = true
+}

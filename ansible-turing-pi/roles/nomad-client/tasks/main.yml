@@ -1,0 +1,128 @@
+# Deploy Nomad Clients
+- name: Create nomad user
+  become: yes
+  user:
+    name: "{{ item }}"
+    system: yes
+    shell: "/sbin/nologin"
+    comment: "nologin user"
+    create_home: "no"
+    state: present
+  loop:
+    - "{{ nomad_user }}"
+  tags:
+    - nomad
+
+- name: Create /etc/nomad.d if it does not exist
+  become: yes
+  file:
+    path: /etc/nomad.d
+    state: directory
+    mode: '0755'
+
+- name: Create Hashi directories
+  become: yes
+  file:
+    path: /opt/{{ item }}
+    state: directory
+    mode: 0777
+    owner: "{{ item }}"
+    group: "{{ item }}"
+  loop:
+    - nomad
+  tags:
+    - nomad-client
+
+- name: Create directories for HostVolumes
+  become: yes
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0777
+  loop:
+    - /opt/mysql/data
+    - /opt/mongodb/data
+    - /opt/prometheus/data
+    - /opt/cni/bin
+  tags:
+    - nomad-client
+
+- name: Unzip and install HashiCorp Nomad
+  become: yes
+  unarchive:
+    remote_src: yes
+    src: https://releases.hashicorp.com/nomad/{{nomad_ver}}+ent/nomad_{{nomad_ver}}+ent_linux_{{arch}}.zip
+    dest: /usr/bin/
+  tags:
+    - nomad-client
+
+- name: Unzip and install AMD CNI Plugins
+  become: yes
+  unarchive:
+    remote_src: yes
+    src: https://github.com/containernetworking/plugins/releases/download/v0.8.7/cni-plugins-linux-amd64-v0.8.7.tgz
+    dest: /opt/cni/bin/
+  tags:
+    - nomad-client
+  when: arch == 'amd64'
+
+- name: Unzip and install ARM CNI Plugins
+  become: yes
+  unarchive:
+    remote_src: yes
+    src: https://github.com/containernetworking/plugins/releases/download/v0.8.7/cni-plugins-linux-arm64-v0.8.7.tgz
+    dest: /opt/cni/bin/
+  tags:
+    - nomad-client
+  when: arch == 'arm64'
+
+
+- name: Create service file
+  become: yes
+    # Ubuntu: service files are placesd here /lib/systemd/system/
+    # Ubuntu: symlinked to here when enabled /etc/systemd/system/multi-user.target.wants/
+  template:
+    src: init.service.j2
+    dest: /lib/systemd/system/nomad.service
+  notify: systemd_reload
+  tags:
+    - nomad-client
+
+- name: Create AMD config files
+  become: yes
+  template:
+    src: "{{ item }}.hcl.j2"
+    dest: "{{ nomad_config_path }}/{{ item }}.hcl"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+  loop:
+    - clientamd
+    - common
+  tags:
+    - nomad-client
+  when: arch == 'amd64'
+
+- name: Create ARM config file
+  become: yes
+  template:
+    src: "{{ item }}.hcl.j2"
+    dest: "{{ nomad_config_path }}/{{ item }}.hcl"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+  loop:
+    - clientarm
+    - common
+  tags:
+    - nomad-client
+  when: arch == 'arm64'
+
+- name: Enable and start nomad service
+  become: yes
+  service:
+    name: nomad
+    state: started
+    enabled: yes
+  tags:
+    - nomad-client
+
+

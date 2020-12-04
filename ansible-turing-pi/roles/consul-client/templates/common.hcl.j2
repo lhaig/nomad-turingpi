@@ -1,0 +1,24 @@
+#==> Common
+datacenter                    = "{{datacenter}}"
+primary_datacenter            = "{{datacenter}}"
+data_dir                      = "/opt/consul"
+retry_join                    = {{retry_join}}
+advertise_addr_wan            = "{{ansible_host}}"
+advertise_addr                = "{{ansible_host}}"
+#encrypt                       = "{{consul_gossip_key}}"
+enable_local_script_checks    = true
+leave_on_terminate            = true
+
+ports {
+  http = 8500
+  grpc = 8502
+}
+
+connect {
+  enabled = true
+}
+
+telemetry {
+  disable_hostname = true
+  prometheus_retention_time = "30s"
+}

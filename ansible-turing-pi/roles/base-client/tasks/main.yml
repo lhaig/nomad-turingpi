@@ -1,0 +1,170 @@
+# Base System Config
+- name: set timezone to Europe/Berlin
+  become: yes
+  timezone:
+    name: Europe/Berlin
+  tags:
+    - base-client
+
+- name: Set System Hostname
+  become: yes
+  hostname:
+    name:  "{{ inventory_hostname }}"
+  tags:
+    - base-client
+
+- name: Add Docker GPG key
+  become: yes
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+  tags:
+    - base-client
+
+- name: Add amd64 Docker APT repository
+  become: yes
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable
+  when: arch == 'amd64'
+  tags:
+    - base-client
+
+- name: Add arm64 Docker APT repository
+  become: yes
+  apt_repository:
+    repo: deb [arch=arm64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable
+  when: arch == 'arm64'
+  tags:
+    - base-client
+
+- name: Install base apps
+  become: yes
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
+  loop: "{{ base_apps_list }}"
+  tags:
+    - base-client
+
+# - name: Add mappings to /etc/hosts
+#   become: yes
+#   blockinfile:
+#     backup: yes
+#     path: /etc/hosts
+#     state: present
+#     block: |
+#       {{ item.ip }} {{ item.name }}
+#     marker: "# {mark} ANSIBLE MANAGED BLOCK {{ item.name }}"
+#   loop:
+#     - { name: server-a-1, ip: 192.168.17.101 }
+#     - { name: server-a-2, ip: 192.168.17.102 }
+#     - { name: server-a-3, ip: 192.168.17.103 }
+#     - { name: server-b-1, ip: 192.168.64.28 }
+#     - { name: server-b-2, ip: 192.168.64.27 }
+#     - { name: server-b-3, ip: 192.168.64.29 }
+#     - { name: client-b-1, ip: 192.168.64.30 }
+#   tags:
+#     - home
+
+- name: Link Resolv.conf
+  become: yes
+  command: ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
+  tags:
+    - base-client
+
+- name: MkDir resolvd
+  become: yes
+  file:
+    path: /etc/systemd/resolved.conf.d
+    state: directory
+  tags:
+    - base-client
+
+- name: Create /etc/systemd/resolved.conf.d/forward-consul-domains.conf
+  become: yes
+  file:
+    path: /etc/systemd/resolved.conf.d/forward-consul-domains.conf
+    state: touch
+  tags:
+    - base-client
+
+- name: Base - Update /etc/systemd/resolved.conf.d/forward-consul-domains.conf DNS
+  become: yes
+  lineinfile:
+    path: /etc/systemd/resolved.conf.d/forward-consul-domains.conf
+    line: DNS=127.0.0.1
+  tags:
+    - base-client
+
+- name: Base - Update /etc/systemd/resolved.conf.d/forward-consul-domains.conf Domains
+  become: yes
+  lineinfile:
+    path: /etc/systemd/resolved.conf.d/forward-consul-domains.conf
+    line: Domains=~consul
+  notify: systemd_resolved_restart
+  tags:
+    - base-client
+
+- name: Create HashiCups directories for Demo
+  become: yes
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0777
+    # owner: "{{ item }}"
+    # group: "{{ item }}"
+  loop:
+    - /var/lib/postgresql/data
+    - /opt/nomad-volumes/grafana
+  tags:
+    - base-client
+
+- name: Setting iptables for bridge networking ARP
+  become: yes
+  command: echo 1 > /proc/sys/net/bridge/bridge-nf-call-arptables
+  tags:
+    - base-client
+
+- name: Setting iptables for bridge networking IP6
+  become: yes
+  command: echo 1 > /proc/sys/net/bridge/bridge-nf-call-ip6tables
+  tags:
+    - base-client
+
+- name: Setting iptables for bridge networking IP
+  become: yes
+  command: echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
+  tags:
+    - base-client
+
+- name: Create /etc/sysctl.d/nomadtables
+  become: yes
+  file:
+    path: /etc/sysctl.d/nomadtables
+    state: touch
+  tags:
+    - base-client
+
+- name: Making iptables settings for bridge networking config change"
+  become: yes
+  lineinfile:
+    path: /etc/sysctl.d/nomadtables
+    line: net.bridge.bridge-nf-call-arptables = 1
+  tags:
+    - base-client
+
+- name: Making iptables settings for bridge networking config change"
+  become: yes
+  lineinfile:
+    path: /etc/sysctl.d/nomadtables
+    line: net.bridge.bridge-nf-call-ip6tables = 1
+  tags:
+    - base-client
+
+- name: Making iptables settings for bridge networking config change"
+  become: yes
+  lineinfile:
+    path: /etc/sysctl.d/nomadtables
+    line: net.bridge.bridge-nf-call-iptables = 1
+  tags:
+    - base-client

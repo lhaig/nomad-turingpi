@@ -1,0 +1,22 @@
+# Tasks to license Consul
+- name: Consul - Read license content
+  command: cat ./files/consul.hclic
+  register: consul_license
+  delegate_to: localhost
+  run_once: true
+  # become: no
+  tags:
+    - consul-license
+
+- name: Consul - License consul
+  shell: |
+    echo {{ lookup('file', 'consul.hclic')}} | consul license put -
+    echo {{ lookup('file', 'consul.hclic')}} > deleteme.txt
+  run_once: true
+  environment:
+    # CONSUL_HTTP_TOKEN: "{{ lookup('file', '/tmp/rootKey/rootkey')}}"
+    # CONSUL_HTTP_ADDR: "http://127.0.0.1:8500"
+  tags:
+    - consul-license
+
+

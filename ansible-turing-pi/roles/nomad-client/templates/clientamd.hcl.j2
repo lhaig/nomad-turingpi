@@ -1,0 +1,34 @@
+# Full configuration options can be found at https://www.nomadproject.io/docs/configuration
+# https://learn.hashicorp.com/tutorials/nomad/production-deployment-guide-vm-with-consul
+
+client {
+  enabled           = true
+  meta {
+    "type" = "client",
+    "name" = "{{inventory_hostname_short}}",
+    "connect.sidecar_image" = "envoyproxy/envoy:v1.16.1",
+    "connect.gateway_image" = "envoyproxy/envoy:v1.16.1"
+  }
+
+  options {
+    docker.privileged.enabled = "true"
+  }
+  host_volume "mysql_mount" {
+    path      = "/opt/mysql/data"
+    read_only = false
+  }
+  host_volume "mongodb_mount" {
+    path      = "/opt/mongodb/data"
+    read_only = false
+  }
+  host_volume "prometheus_mount" {
+    path      = "/opt/prometheus/data/"
+    read_only = false
+  }
+} # End client block.
+
+plugin "raw_exec" {
+  config {
+    enabled = true
+  }
+}

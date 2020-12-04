@@ -1,0 +1,74 @@
+---
+- hosts: vagrant_servers
+  vars:
+    nomad_ver: 1.0.0-beta3
+    consul_ver: 1.9.0
+    arch: amd64 # arm64, amd64
+    retry_join: "{{ groups['vagrant_servers'] | map('extract', hostvars, ['ansible_host']) | list | to_json }}"
+    bootstrap_expect: 1
+    region: vgrnt-region
+    datacenter: vagrant-dc1
+    nomad_gossip_key: "cs03YdcHiMtA45/NqVyLKzEJdjNPKiwq5KaATN9cwj0="
+    consul_gossip_key: "faXvMfk/tUzKr8tmJHy7ZVtLNUoZIsCZ7nTbWVJCr1E="
+  roles:
+    - base-server
+    - consul-server
+    - nomad-server
+
+# License Nomad and Consul
+- hosts: vagrant_deploy_host
+  roles:
+    - consul-license
+    - nomad-license
+
+- hosts: vagrant_clients
+  vars:
+    nomad_ver: 1.0.0-beta3
+    consul_ver: 1.9.0
+    arch: amd64 # arm64, amd64
+    retry_join: "{{ groups['vagrant_servers'] | map('extract', hostvars, ['ansible_host']) | list | to_json }}"
+    region: vgrnt-region
+    datacenter: vagrant-dc1
+    nomad_gossip_key: "cs03YdcHiMtA45/NqVyLKzEJdjNPKiwq5KaATN9cwj0="
+    consul_gossip_key: "faXvMfk/tUzKr8tmJHy7ZVtLNUoZIsCZ7nTbWVJCr1E="
+  roles:
+    - base-client
+    - consul-client
+    - nomad-client
+
+- hosts: turingpi_servers
+  vars:
+    nomad_ver: 1.0.0-beta3
+    consul_ver: 1.9.0
+    arch: arm64 # arm64, amd64
+    retry_join: "{{ groups['turingpi_servers'] | map('extract', hostvars, ['ansible_host']) | list | to_json }}"
+    bootstrap_expect: 3
+    region: tpi-region
+    datacenter: tpi-dc1
+    nomad_gossip_key: "h4nUOPghRboTCMoGFo399ORZUa1eM9eQBUb8PjZ19DA="
+    consul_gossip_key: "jSN26UfBqcAdAkq57lFPff7K3EZZgxvzdU01YYXeLiE="
+  roles:
+    - base-server
+    - consul-server
+    - nomad-server
+
+# License Nomad and Consul
+- hosts: turingpi_deploy_host
+  roles:
+    - consul-license
+    - nomad-license
+
+- hosts: turingpi_clients
+  vars:
+    nomad_ver: 1.0.0-beta3
+    consul_ver: 1.9.0
+    arch: arm64 # arm64, amd64
+    retry_join: "{{ groups['turingpi_servers'] | map('extract', hostvars, ['ansible_host']) | list | to_json }}"
+    nomad_gossip_key: "cs03YdcHiMtA45/NqVyLKzEJdjNPKiwq5KaATN9cwj0="
+    consul_gossip_key: "jSN26UfBqcAdAkq57lFPff7K3EZZgxvzdU01YYXeLiE="
+    region: tpi-region
+    datacenter: tpi-dc1
+  roles:
+    - base-client
+    - consul-client
+    - nomad-client

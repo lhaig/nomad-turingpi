@@ -1,0 +1,4 @@
+---
+consul_user: "consul"
+consul_group: "consul"
+consul_config_path: "/etc/consul.d/"

@@ -1,0 +1,39 @@
+# TAsks to setup standard jobs in Nomad
+- name: Create Jobs directory
+  become: yes
+  file:
+    path: /opt/{{ item }}
+    state: directory
+    mode: 0777
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+  loop:
+    - jobs
+  tags:
+    - nomad-job-deployment
+
+- name: Copy jobs to the deployment machine
+  become: yes
+  copy:
+    src: files/{{ item }}
+    dest: /opt/jobs/
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+  with_items:
+    - as-das-autoscaler.nomad
+    - as-prometheus.nomad
+
+- name: Nomad - DAS - Start prometheus and auto-scaler
+  shell: |
+    cd /opt/jobs
+    nomad job run as-das-autoscaler.nomad
+    nomad job run as-prometheus.nomad
+  run_once: true
+  environment:
+    # VAULT_TOKEN: "{{ lookup('file', '/tmp/rootKey/rootkey')}}"
+    # VAULT_ADDR: "http://127.0.0.1:8200"
+    NOMAD_ADDR: "http://{{ansible_host}}:4646"
+  tags:
+    - nomad-job-deployment
+    - hashicups
+
