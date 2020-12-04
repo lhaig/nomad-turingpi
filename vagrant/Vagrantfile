@@ -1,0 +1,65 @@
+# * mode: ruby *
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  id_rsa_pub = File.read("#{Dir.home}/.ssh/id_rsa.pub")
+  config.vm.provision "copy ssh public key", type: "shell", inline: "echo \"#{id_rsa_pub}\" >> /home/vagrant/.ssh/authorized_keys"
+  # config.vm.network "forwarded_port", guest: 80, host: 80, auto_correct: true
+  # config.vm.network "forwarded_port", guest: 8800, host: 8800, auto_correct: true
+  # config.vm.network "forwarded_port", guest: 8500, host: 8500, auto_correct: true
+  # config.vm.network "forwarded_port", guest: 443, host: 443, auto_correct: true
+  # # Loki
+  # config.vm.network "forwarded_port", guest: 3100, host: 3100, auto_correct: true
+  # #Grafana
+  # config.vm.network "forwarded_port", guest: 10000, host: 10000, auto_correct: true
+  # #Promtail
+  # config.vm.network "forwarded_port", guest: 9080, host: 9080, auto_correct: true
+  # #Nomad
+  # config.vm.network "forwarded_port", guest: 4647, host: 4647, auto_correct: true
+  # # Expose the nomad api and ui to the host
+  # config.vm.network "forwarded_port", guest: 4646, host: 4646, auto_correct: true
+  # config.vm.network "public_network", bridge: "en5: USB 10/100/1000 LAN"
+  # default router
+  config.vm.provision "shell",
+    run: "always",
+    inline: "route add default gw 192.168.1.1"
+
+  # delete default gw on enp0s3
+  config.vm.provision "shell",
+    run: "always",
+    inline: "eval `route -n | awk '{ if ($8 ==\"enp0s3\" && $2 != \"0.0.0.0\") print \"route del default gw \" $2; }'`"
+
+  config.vm.define "vgsvr1" do |vgsvr1|
+    vgsvr1.vm.network "public_network", bridge: "en5: USB 10/100/1000 LAN", ip: "192.168.1.200", mac: "08:00:27:7C:16:70"
+    vgsvr1.vm.box = "ubuntu/bionic64"
+    vgsvr1.vm.hostname = "vgsvr1"
+  end
+  # config.vm.define "vgsvr2" do |vgsvr2|
+  #   vgsvr2.vm.network "public_network", bridge: "en5: USB 10/100/1000 LAN", ip: "192.168.1.201"
+  #   vgsvr2.vm.box = "ubuntu/bionic64"
+  #   vgsvr2.vm.hostname = "vgsvr2"
+  # end
+  # config.vm.define "vgsvr3" do |vgsvr3|
+  #   vgsvr3.vm.network "public_network", bridge: "en5: USB 10/100/1000 LAN", ip: "192.168.1.202", mac: "08:00:27:7D:31:B4"
+  #   vgsvr3.vm.box = "ubuntu/bionic64"
+  #   vgsvr3.vm.hostname = "vgsvr3"
+  # end
+  config.vm.define "vgclnt1" do |vgclnt1|
+    vgclnt1.vm.network "public_network", bridge: "en5: USB 10/100/1000 LAN", ip: "192.168.1.204", mac: "08:00:27:2C:DE:36"
+    vgclnt1.vm.box = "ubuntu/bionic64"
+    vgclnt1.vm.hostname = "vgclnt1"
+  end
+  config.vm.define "vgclnt2" do |vgclnt2|
+    vgclnt2.vm.network "public_network", bridge: "en5: USB 10/100/1000 LAN", ip: "192.168.1.205", mac: "08:00:27:50:51:29"
+    vgclnt2.vm.box = "ubuntu/bionic64"
+    vgclnt2.vm.hostname = "vgclnt2"
+  end
+  # config.vm.define "vgclnt3" do |vgclnt3|
+  #   vgclnt3.vm.network "public_network", bridge: "en5: USB 10/100/1000 LAN", ip: "192.168.1.206", mac: "08:00:27:EF:1C:A6"
+  #   vgclnt3.vm.box = "ubuntu/bionic64"
+  #   vgclnt3.vm.hostname = "vgclnt3"
+  # end
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "1024"
+  end
+end
