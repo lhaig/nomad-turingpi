@@ -6,6 +6,6 @@
 .vagrant
 .DS_Store
 ansible-turing-pi/ansible.log
-ansible-turing-pi/files
+ansible-turing-pi/files/*.hclic
 *.pub
 ubuntu-*
